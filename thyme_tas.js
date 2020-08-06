@@ -18,7 +18,7 @@ var SerialPort = require('serialport');
 var s_Dev_Port = null;
 exports.ready = function tas_ready () {
         // s_Dev_PortNum = '/dev/ttyAMA0';
-        s_Dev_PortNum = 'COM8';
+        s_Dev_PortNum = '/dev/ttyUSB3';
         s_Dev_Baudrate = '38400';
         s_Dev_PortOpening();
 };
@@ -100,6 +100,7 @@ function s_Dev_PortData(data){
     if(data.length >= 14) {
         serial_data = data.slice(0,10);
         serial_data = serial_data.toString('hex');
+        console.log(serial_data);
         obj = payload_decode(serial_data);
         console.log(obj);
         var parent = '/' + conf.cse.name + '/' + conf.ae.name + '/' + conf.cnt[0].name;
@@ -110,22 +111,69 @@ function s_Dev_PortData(data){
     serial_buffer = '';
 }
 
-
+var car_array = [];
+var human_array = [];
+//var message ='';
+var hexsum = 0x00;
 exports.noti = function(path_arr, cinObj) {
     var cin = {};
     cin.ctname = path_arr[path_arr.length-2];
     cin.con = (cinObj.con != null) ? cinObj.con : cinObj.content;
-
+    console.log(cin.con);
+    var configure = (cin.con).split(',');
+    console.log(configure);
     if(cin.con == '') {
         console.log('---- is not cin message');
     }
     else {
         //console.log(JSON.stringify(cin));
-        console.log('<---- send to tas');
+        console.log(cin.con);
+        if(configure[1] == 'car'){
+            car_array[0] = '0x02';
+            car_array[1] = '0x30';
+            car_array[2] = '0x'+configure[0];
+            car_array[3] = '0x3e';
+            car_array[4] = '0x00';
+            car_array[5] = '0x00';
+            car_array[6] = '0x00';
+            car_array[7] = '0x00';
+            car_array[8] = '0x70';
+            car_array[9] = '0x03';
+            message = new Buffer.from(car_array,'hex');
+            for(i = 0; i < car_array.length-2;i++){
+                hexsum = hexsum + message[i];
+            }
+            message[8] = hexsum;
+            console.log(message);
 
-        if (socket_arr[path_arr[path_arr.length-2]] != null) {
-            socket_arr[path_arr[path_arr.length-2]].write(JSON.stringify(cin) + '<EOF>');
+            s_Dev_Port.write(message);
+        }//02 01 10 3e 0a 00 00 00 5b 03
+        else if(configure[1] == 'human'){
+            human_array[0] = '0x02';
+            human_array[1] = '0x40';
+            human_array[2] = '0x'+configure[0];
+            human_array[3] = '0x3e';
+            human_array[4] = '0x00';
+            human_array[5] = '0x00';
+            human_array[6] = '0x00';
+            human_array[7] = '0x00';
+            human_array[8] = '0x70';
+            human_array[9] = '0x03';        
+            message = new Buffer.from(human_array,'hex');
+            for(i = 0; i < human_array.length-2;i++){
+                hexsum = hexsum + message[i];
+            }
+            message[8] = hexsum;
+            console.log(message);
+            s_Dev_Port.write(message);
         }
+//        console.log(car_array);
+//        console.log(human_array);
+//        console.log(message);
+//        s_Dev_Port.write(message);
+//        console.log('<---- send to tas');
+//        console.log(
+
     }
 };
 
