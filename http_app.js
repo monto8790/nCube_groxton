@@ -180,6 +180,7 @@ function http_watchdog() {
         console.log('[sh_state] : ' + sh_state);
         sh_adn.rtvae(conf.ae.parent + '/' + conf.ae.name, function (status, res_body) {
             if (status == 2000) {
+                // console.log("########"+JSON.stringify(res_body));
                 var aeid = res_body['m2m:ae']['aei'];
                 console.log('x-m2m-rsc : ' + status + ' - ' + aeid + ' <----');
 
@@ -262,7 +263,7 @@ function http_watchdog() {
     }
 }
 
-wdt.set_wdt(require('shortid').generate(), 2, http_watchdog);
+wdt.set_wdt(require('shortid').generate(), 1, http_watchdog);
 
 
 // for notification

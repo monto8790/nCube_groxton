@@ -95,7 +95,15 @@ function http_request(path, method, ty, bodyString, callback) {
             }
             else {
                 try {
-                    var jsonObj = JSON.parse(res_body);
+                    if(res_body != "") {
+                        console.log('########' + res_body)
+                        var jsonObj = JSON.parse(res_body);
+                        // callback(res, jsonObj);
+                    }
+                    else{
+                        var jsonObj = {};
+                        jsonObj.dbg = res_body;
+                    }
                     callback(res, jsonObj);
                 }
                 catch (e) {
